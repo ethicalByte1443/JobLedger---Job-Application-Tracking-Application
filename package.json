@@ -1,0 +1,23 @@
+{
+  "name": "job-application-tracker",
+  "version": "1.0.0",
+  "description": "A full-stack job application tracker with a Chrome extension.",
+  "private": true,
+  "workspaces": [
+    "chrome-extension",
+    "dashboard",
+    "backend",
+    "shared-types"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:dashboard": "npm run dev --workspace=dashboard",
+    "dev:extension": "npm run dev --workspace=chrome-extension",
+    "build:extension": "npm run build --workspace=chrome-extension",
+    "build:dashboard": "npm run build --workspace=dashboard",
+    "build:backend": "npm run build --workspace=backend",
+    "dev": "npm run dev:backend & npm run dev:dashboard & npm run dev:extension"
+  },
+  "author": "",
+  "license": "ISC"
+}

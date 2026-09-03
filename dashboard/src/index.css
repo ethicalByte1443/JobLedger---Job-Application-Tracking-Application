@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Light mode defaults */
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+
+  /* Dark mode */
+  .dark body,
+  body.dark {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-sm;
+  }
+  .dark .card {
+    @apply bg-slate-900 border-slate-800;
+  }
+
+  .stat-card {
+    @apply card p-5 flex flex-col gap-1;
+  }
+
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold border;
+  }
+
+  .badge-applied {
+    @apply bg-blue-50 text-blue-700 border-blue-200;
+  }
+  .dark .badge-applied {
+    @apply bg-blue-950 text-blue-300 border-blue-800;
+  }
+  .badge-rejected {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  .dark .badge-rejected {
+    @apply bg-red-950 text-red-300 border-red-800;
+  }
+  .badge-accepted {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+  .dark .badge-accepted {
+    @apply bg-emerald-950 text-emerald-300 border-emerald-800;
+  }
+  .badge-interview {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+  .dark .badge-interview {
+    @apply bg-amber-950 text-amber-300 border-amber-800;
+  }
+  .badge-default {
+    @apply bg-slate-50 text-slate-700 border-slate-200;
+  }
+  .dark .badge-default {
+    @apply bg-slate-800 text-slate-300 border-slate-700;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+  .dark .input-field {
+    @apply bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500;
+  }
+
+  .select-field {
+    @apply px-4 py-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 outline-none transition-all focus:ring-2 focus:ring-blue-500 cursor-pointer;
+  }
+  .dark .select-field {
+    @apply bg-slate-800 border-slate-700 text-slate-100;
+  }
+
+  .btn-primary {
+    @apply flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply flex items-center gap-2 text-slate-600 hover:bg-slate-100 px-3 py-2 rounded-xl font-medium text-sm transition-all;
+  }
+  .dark .btn-ghost {
+    @apply text-slate-400 hover:bg-slate-800;
+  }
+}
