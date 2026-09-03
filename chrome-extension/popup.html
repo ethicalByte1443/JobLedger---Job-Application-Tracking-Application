@@ -151,6 +151,147 @@
       flex-shrink: 0;
     }
 
+    /* ── Toggle Bar ── */
+    .toggle-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(14, 21, 38, 0.7);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .toggle-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex: 1;
+    }
+
+    .toggle-label-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+
+    .toggle-label-text.active {
+      color: var(--text-primary);
+    }
+
+    .toggle-status-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+
+    .toggle-status-pill.on {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .toggle-status-pill.off {
+      background: rgba(100, 116, 139, 0.12);
+      color: #64748b;
+      border: 1px solid rgba(100, 116, 139, 0.2);
+    }
+
+    /* The toggle switch itself */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: rgba(100, 116, 139, 0.3);
+      border-radius: 22px;
+      transition: background 0.25s;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .switch-slider:before {
+      content: '';
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+
+    .switch input:checked + .switch-slider {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border-color: rgba(99,102,241,0.4);
+      box-shadow: 0 0 10px rgba(99,102,241,0.35);
+    }
+
+    .switch input:checked + .switch-slider:before {
+      transform: translateX(18px);
+    }
+
+    /* Disabled content overlay — only covers the panels area, NOT header/toggle */
+    .content-area {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .disabled-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      background: rgba(9, 13, 22, 0.82);
+      backdrop-filter: blur(3px);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .disabled-overlay.show {
+      display: flex;
+    }
+
+    .disabled-overlay-icon {
+      font-size: 32px;
+      opacity: 0.6;
+    }
+
+    .disabled-overlay-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .disabled-overlay-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
     .tab-btn {
       flex: 1;
       padding: 7px 8px;
@@ -811,6 +952,7 @@
 
 <body>
 
+
   <!-- ═══ HEADER ═══ -->
   <div class="header">
     <div class="header-left">
@@ -834,6 +976,32 @@
       </svg>
       Dashboard
     </button>
+  </div>
+
+  <!-- ═══ TOGGLE BAR ═══ -->
+  <div class="toggle-bar" id="toggleBar">
+    <div class="toggle-bar-left">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);flex-shrink:0">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span class="toggle-label-text" id="toggleLabelText">Tracking</span>
+      <span class="toggle-status-pill" id="toggleStatusPill">...</span>
+    </div>
+    <label class="switch" title="Enable or disable job application tracking">
+      <input type="checkbox" id="extensionToggle" checked />
+      <span class="switch-slider"></span>
+    </label>
+  </div>
+
+  <!-- ═══ CONTENT AREA (tabs + panels + footer — overlay lives here) ═══ -->
+  <div class="content-area">
+
+  <!-- ═══ DISABLED OVERLAY — only covers this area, NOT header/toggle ═══ -->
+  <div class="disabled-overlay" id="disabledOverlay">
+    <div class="disabled-overlay-icon">🛑</div>
+    <div class="disabled-overlay-title">Tracking is Disabled</div>
+    <div class="disabled-overlay-sub">Toggle the switch above<br>to re-enable tracking.</div>
   </div>
 
   <!-- ═══ TABS ═══ -->
@@ -1008,6 +1176,8 @@
   </div>
 
   <script src="dist/popup.js"></script>
+
+  </div><!-- end .content-area -->
 </body>
 
 </html>

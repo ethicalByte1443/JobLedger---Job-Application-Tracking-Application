@@ -101,10 +101,12 @@ function clearBadge(tabId?: number) {
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[JAT] Job Application Tracker installed.');
   // Initialize storage if empty
-  chrome.storage.local.get(['applications'], (result) => {
-    if (!result.applications) {
-      chrome.storage.local.set({ applications: [] });
-    }
+  chrome.storage.local.get(['applications', 'extensionEnabled'], (result) => {
+    const updates: Record<string, unknown> = {};
+    if (!result.applications) updates.applications = [];
+    // Default: extension is enabled
+    if (result.extensionEnabled === undefined) updates.extensionEnabled = true;
+    if (Object.keys(updates).length > 0) chrome.storage.local.set(updates);
   });
 });
 
@@ -224,6 +226,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'GET_APPLICATIONS') {
     getApplications().then((apps) => {
       sendResponse({ success: true, data: apps });
+    });
+    return true;
+  }
+
+  // ── Get extension enabled/disabled state ──
+  if (request.action === 'GET_EXTENSION_STATE') {
+    chrome.storage.local.get(['extensionEnabled'], (result) => {
+      const isEnabled = result.extensionEnabled !== false;
+      sendResponse({ success: true, enabled: isEnabled });
+    });
+    return true;
+  }
+
+  // ── Set extension enabled/disabled state ──
+  if (request.action === 'SET_EXTENSION_STATE') {
+    const enabled = request.enabled !== false;
+    chrome.storage.local.set({ extensionEnabled: enabled }, () => {
+      console.log(`[JAT] Extension ${enabled ? 'enabled' : 'disabled'}.`);
+      sendResponse({ success: true, enabled });
     });
     return true;
   }

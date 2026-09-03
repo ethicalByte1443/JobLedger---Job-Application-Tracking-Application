@@ -8,6 +8,65 @@
  */
 
 // ============================================================
+// Blocked Domains — never run detection on these sites
+// ============================================================
+const BLOCKED_DOMAINS = [
+  'chatgpt.com',
+  'chat.openai.com',
+  'openai.com',
+  'github.com',
+  'gitlab.com',
+  'google.com',
+  'youtube.com',
+  'reddit.com',
+  'twitter.com',
+  'x.com',
+  'facebook.com',
+  'instagram.com',
+  'stackoverflow.com',
+  'notion.so',
+  'slack.com',
+  'discord.com',
+  'figma.com',
+  'canva.com',
+  'medium.com',
+  'dev.to',
+  'hashnode.com',
+  'producthunt.com',
+  'dribbble.com',
+  'behance.net',
+  'trello.com',
+  'asana.com',
+  'jira.atlassian.com',
+  'confluence.atlassian.com',
+  'docs.google.com',
+  'mail.google.com',
+  'calendar.google.com',
+  'drive.google.com',
+  'outlook.live.com',
+  'outlook.office.com',
+  'dropbox.com',
+  'box.com',
+  'netflix.com',
+  'amazon.com',
+  'flipkart.com',
+  'swiggy.com',
+  'zomato.com',
+  'news.ycombinator.com',
+  'wikipedia.org',
+  'localhost',
+  '127.0.0.1',
+];
+
+/**
+ * Returns true if the current page hostname is in the blocked list.
+ */
+function isBlockedDomain(): boolean {
+  const hostname = window.location.hostname.toLowerCase();
+  return BLOCKED_DOMAINS.some((d) => hostname === d || hostname.endsWith('.' + d));
+}
+
+// ============================================================
 // Success Indicators
 // ============================================================
 const SUCCESS_INDICATORS = [
@@ -676,6 +735,240 @@ function showToast(message: string, type: 'success' | 'info' | 'warning' = 'succ
 }
 
 // ============================================================
+// Confirmation Dialog — shown before saving any application
+// ============================================================
+
+function showConfirmationDialog(data: ExtractedData): void {
+  // Remove any existing dialog
+  document.getElementById('__jat-confirm__')?.remove();
+  document.getElementById('__jat-confirm-backdrop__')?.remove();
+  document.getElementById('__jat-confirm-styles__')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = '__jat-confirm-backdrop__';
+  backdrop.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    animation: __jat_fadeIn 0.2s ease;
+  `;
+
+  const dialog = document.createElement('div');
+  dialog.id = '__jat-confirm__';
+  dialog.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2147483647;
+    background: #0e1526;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99,102,241,0.15);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: #f8fafc;
+    animation: __jat_slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+
+  const styles = document.createElement('style');
+  styles.id = '__jat-confirm-styles__';
+  styles.textContent = `
+    @keyframes __jat_fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes __jat_slideUp {
+      from { opacity: 0; transform: translate(-50%, calc(-50% + 16px)); }
+      to   { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    #__jat-confirm__ .jat-field { margin-bottom: 10px; }
+    #__jat-confirm__ .jat-field-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #64748b; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    #__jat-confirm__ .jat-edit-badge {
+      font-size: 9px; font-weight: 600; padding: 1px 5px;
+      background: rgba(99,102,241,0.15); color: #818cf8;
+      border: 1px solid rgba(99,102,241,0.25); border-radius: 4px;
+      text-transform: none; letter-spacing: 0;
+    }
+    #__jat-confirm__ .jat-input {
+      width: 100%; font-size: 13px; font-weight: 500; color: #f1f5f9;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 8px 10px;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      outline: none; box-sizing: border-box;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    #__jat-confirm__ .jat-input::placeholder { color: #475569; font-style: italic; }
+    #__jat-confirm__ .jat-input:focus {
+      border-color: rgba(99,102,241,0.6);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+      background: rgba(99,102,241,0.06);
+    }
+    #__jat-confirm__ .jat-input:hover:not(:focus) {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07);
+    }
+    #__jat-btn-save {
+      flex: 1; padding: 10px; border: none; border-radius: 9px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+      font-family: inherit;
+    }
+    #__jat-btn-save:hover { opacity: 0.88; transform: translateY(-1px); }
+    #__jat-btn-dismiss {
+      flex: 1; padding: 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 9px;
+      background: rgba(255,255,255,0.05); color: #94a3b8;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: background 0.15s, color 0.15s; font-family: inherit;
+    }
+    #__jat-btn-dismiss:hover { background: rgba(244,63,94,0.15); color: #fda4af; border-color: rgba(244,63,94,0.3); }
+  `;
+  document.head.appendChild(styles);
+
+  dialog.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <div style="
+        width:40px;height:40px;border-radius:11px;flex-shrink:0;
+        background:linear-gradient(135deg,#4f46e5,#6366f1,#38bdf8);
+        display:flex;align-items:center;justify-content:center;
+        box-shadow:0 4px 14px rgba(99,102,241,0.4);
+      ">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#f8fafc;line-height:1.2;">Application Detected</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">Review &amp; edit details before saving</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;margin-bottom:16px;">
+      <div class="jat-field">
+        <div class="jat-field-label">
+          Company
+          <span class="jat-edit-badge">✏ editable</span>
+        </div>
+        <input
+          id="__jat-input-company"
+          class="jat-input"
+          type="text"
+          placeholder="Enter company name..."
+          value="${escapeHtml(data.companyName)}"
+        />
+      </div>
+      <div class="jat-field">
+        <div class="jat-field-label">
+          Job Role
+          <span class="jat-edit-badge">✏ editable</span>
+        </div>
+        <input
+          id="__jat-input-role"
+          class="jat-input"
+          type="text"
+          placeholder="Enter job role / title..."
+          value="${escapeHtml(data.jobRole)}"
+        />
+      </div>
+      <div class="jat-field" style="margin-bottom:0">
+        <div class="jat-field-label">
+          Source
+          <span class="jat-edit-badge">✏ editable</span>
+        </div>
+        <input
+          id="__jat-input-source"
+          class="jat-input"
+          type="text"
+          placeholder="e.g. LinkedIn, Indeed, Direct..."
+          value="${escapeHtml(data.source)}"
+        />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button id="__jat-btn-dismiss">✕ Dismiss</button>
+      <button id="__jat-btn-save">💾 Save Application</button>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(dialog);
+
+  function closeDialog() {
+    backdrop.remove();
+    dialog.remove();
+    styles.remove();
+  }
+
+  // Backdrop click dismisses (but NOT if user is typing in a field)
+  backdrop.addEventListener('click', () => {
+    closeDialog();
+    alreadyDetected = false;
+    showToast('Application dismissed.', 'info');
+  });
+
+  // Dismiss button
+  document.getElementById('__jat-btn-dismiss')?.addEventListener('click', () => {
+    closeDialog();
+    alreadyDetected = false;
+    showToast('Application dismissed.', 'info');
+  });
+
+  // Save — read values from inputs so edits are captured
+  document.getElementById('__jat-btn-save')?.addEventListener('click', () => {
+    const company = (document.getElementById('__jat-input-company') as HTMLInputElement)?.value.trim();
+    const role    = (document.getElementById('__jat-input-role')    as HTMLInputElement)?.value.trim();
+    const source  = (document.getElementById('__jat-input-source')  as HTMLInputElement)?.value.trim() || data.source;
+
+    const finalData: ExtractedData = {
+      ...data,
+      companyName: company,
+      jobRole: role,
+      source: source,
+      portalName: source,
+    };
+
+    closeDialog();
+    showToast('Saving application...', 'info');
+
+    chrome.runtime.sendMessage(
+      { action: 'APPLICATION_DETECTED', data: finalData },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('[JAT] Error sending message:', chrome.runtime.lastError);
+          return;
+        }
+
+        if (response?.success) {
+          const displayComp = finalData.companyName ? finalData.companyName : (finalData.jobRole || 'Application');
+          showToast(`Saved: ${displayComp} via ${finalData.source}! 🎉`, 'success');
+        } else if (response?.needsInput) {
+          showToast('Almost! Open the extension to confirm details.', 'warning');
+        }
+      }
+    );
+  });
+}
+
+function escapeHtml(str: string): string {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ============================================================
 // MutationObserver & Detection Handler
 // ============================================================
 
@@ -713,51 +1006,60 @@ function onSuccessDetected(): void {
 
   console.log('[JAT] Extracted data:', extracted);
 
-  showToast('Application detected! Saving...', 'info');
+  // Show confirmation dialog — user decides whether to save
+  showConfirmationDialog(extracted);
+}
 
-  chrome.runtime.sendMessage(
-    { action: 'APPLICATION_DETECTED', data: extracted },
-    (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('[JAT] Error sending message:', chrome.runtime.lastError);
-        return;
-      }
+// ============================================================
+// Entry Point — check enabled state before doing anything
+// ============================================================
 
-      if (response?.success) {
-        const displayComp = extracted.companyName ? extracted.companyName : (extracted.jobRole || 'Application');
-        showToast(`Saved: ${displayComp} via ${extracted.source}! 🎉`, 'success');
-      } else if (response?.needsInput) {
-        showToast('Almost! Open the extension to confirm details.', 'warning');
+function initDetection() {
+  // 1. Check if blocked domain — bail immediately
+  if (isBlockedDomain()) {
+    console.log('[JAT] Blocked domain — detection disabled for:', window.location.hostname);
+    return;
+  }
+
+  // 2. Check if extension is globally enabled
+  chrome.storage.local.get(['extensionEnabled'], (result) => {
+    // Default to enabled if not set
+    const isEnabled = result.extensionEnabled !== false;
+
+    if (!isEnabled) {
+      console.log('[JAT] Extension is disabled — skipping detection.');
+      return;
+    }
+
+    // 3. Initial check in case page already has success message
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      if (checkForSuccessMessage()) {
+        onSuccessDetected();
       }
     }
-  );
-}
 
-// Initial check in case page already has success message
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  if (checkForSuccessMessage()) {
-    onSuccessDetected();
-  }
-}
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!alreadyDetected && checkForSuccessMessage()) {
+        onSuccessDetected();
+      }
+    });
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!alreadyDetected && checkForSuccessMessage()) {
-    onSuccessDetected();
-  }
-});
+    // Observe DOM mutations for dynamically-rendered success messages
+    const observer = new MutationObserver(() => {
+      if (!alreadyDetected && checkForSuccessMessage()) {
+        onSuccessDetected();
+        observer.disconnect();
+      }
+    });
 
-// Observe DOM mutations for dynamically-rendered success messages
-const observer = new MutationObserver(() => {
-  if (!alreadyDetected && checkForSuccessMessage()) {
-    onSuccessDetected();
-    observer.disconnect();
-  }
-});
-
-if (document.body) {
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-} else {
-  document.addEventListener('DOMContentLoaded', () => {
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      });
+    }
   });
 }
+
+initDetection();

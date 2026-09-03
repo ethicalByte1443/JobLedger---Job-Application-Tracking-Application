@@ -387,6 +387,45 @@ function initExportCsv() {
 }
 
 // ============================================================
+// Extension Toggle
+// ============================================================
+function initToggle() {
+  const toggle = document.getElementById('extensionToggle') as HTMLInputElement;
+  const pill = document.getElementById('toggleStatusPill')!;
+  const labelText = document.getElementById('toggleLabelText')!;
+  const disabledOverlay = document.getElementById('disabledOverlay')!;
+
+  function applyState(enabled: boolean) {
+    toggle.checked = enabled;
+
+    if (enabled) {
+      pill.textContent = 'Active';
+      pill.className = 'toggle-status-pill on';
+      labelText.classList.add('active');
+      disabledOverlay.classList.remove('show');
+    } else {
+      pill.textContent = 'Off';
+      pill.className = 'toggle-status-pill off';
+      labelText.classList.remove('active');
+      disabledOverlay.classList.add('show');
+    }
+  }
+
+  // Load current state
+  chrome.runtime.sendMessage({ action: 'GET_EXTENSION_STATE' }, (response) => {
+    applyState(response?.enabled !== false);
+  });
+
+  // Listen for changes
+  toggle.addEventListener('change', () => {
+    const enabled = toggle.checked;
+    chrome.runtime.sendMessage({ action: 'SET_EXTENSION_STATE', enabled }, (response) => {
+      applyState(response?.enabled !== false);
+    });
+  });
+}
+
+// ============================================================
 // Dashboard button
 // ============================================================
 function initDashboardBtn() {
@@ -411,6 +450,7 @@ function esc(str: string): string {
 // Init
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  initToggle();
   initTabs();
   renderRecent();
   initAddForm();
